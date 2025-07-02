@@ -3,15 +3,15 @@ using Unity.Entities;
 
 namespace NSprites
 {
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
+        [UpdateInGroup(typeof(PresentationSystemGroup))]
     [UpdateBefore(typeof(SpriteRenderingSystem))]
     [WorldSystemFilter(WorldSystemFilterFlags.Default | WorldSystemFilterFlags.Editor | WorldSystemFilterFlags.EntitySceneOptimizations)]
-    public partial struct AddMissedRenderingComponentSystem : ISystem
+    public partial class AddMissedRenderingComponentSystem : SystemBase
     {
         private EntityQuery _query;
         
         [BurstCompile]
-        public void OnCreate(ref SystemState state) 
+        protected override void OnCreate() 
         {
             _query = SystemAPI.QueryBuilder()
                 .WithAll<PropertyPointer>()
@@ -19,11 +19,13 @@ namespace NSprites
                 .WithOptions(EntityQueryOptions.IncludePrefab | EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.Default | EntityQueryOptions.IgnoreComponentEnabledState)
                 .Build();
             
-            state.RequireForUpdate(_query);   
+            RequireForUpdate(_query);   
         }
         
-        [BurstCompile]
-        public void OnUpdate(ref SystemState state) 
-            => state.EntityManager.AddChunkComponentData(_query, new PropertyPointerChunk());
+
+        protected override void OnUpdate()
+        {
+            EntityManager.AddChunkComponentData(_query, new PropertyPointerChunk());
+        }
     }
 }
